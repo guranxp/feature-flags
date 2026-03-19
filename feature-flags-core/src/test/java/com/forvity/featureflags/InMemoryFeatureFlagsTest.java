@@ -56,4 +56,11 @@ class InMemoryFeatureFlagsTest {
 
         assertThat(flags.isEnabled("feature.test", false)).isTrue();
     }
+
+    @Test
+    void shouldLoadFlagsFromCustomPropertiesFile() {
+        final FeatureFlags flags = new InMemoryFeatureFlags(Collections.emptyMap(), "custom-flags.properties");
+
+        assertThat(flags.isEnabled("feature.custom")).isTrue();
+    }
 }

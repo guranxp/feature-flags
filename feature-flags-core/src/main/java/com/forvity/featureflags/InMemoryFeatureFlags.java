@@ -13,17 +13,23 @@ import java.util.Properties;
  * <p>Flag values are resolved at construction time using the following priority (highest first):
  * <ol>
  *   <li>System properties ({@code -Dfeature.my-flag=true}) — checked live at each call</li>
- *   <li>{@code feature-flags.properties} on the classpath</li>
+ *   <li>Properties file on the classpath (default: {@code feature-flags.properties})</li>
  *   <li>Code defaults passed to the constructor</li>
  * </ol>
  */
 public final class InMemoryFeatureFlags implements FeatureFlags {
 
+    private static final String DEFAULT_FILE = "feature-flags.properties";
+
     private final Map<String, Boolean> flags;
 
     public InMemoryFeatureFlags(final Map<String, Boolean> defaults) {
+        this(defaults, DEFAULT_FILE);
+    }
+
+    public InMemoryFeatureFlags(final Map<String, Boolean> defaults, final String propertiesFile) {
         final Map<String, Boolean> resolved = new HashMap<>(defaults);
-        loadFromFile().forEach(resolved::put);
+        loadFromFile(propertiesFile).forEach(resolved::put);
         this.flags = Collections.unmodifiableMap(resolved);
     }
 
@@ -41,10 +47,10 @@ public final class InMemoryFeatureFlags implements FeatureFlags {
         return flags.getOrDefault(toggleName, defaultValue);
     }
 
-    private static Map<String, Boolean> loadFromFile() {
+    private static Map<String, Boolean> loadFromFile(final String propertiesFile) {
         final Map<String, Boolean> result = new HashMap<>();
         final InputStream is = InMemoryFeatureFlags.class.getClassLoader()
-                .getResourceAsStream("feature-flags.properties");
+                .getResourceAsStream(propertiesFile);
         if (is == null) {
             return result;
         }
@@ -55,7 +61,7 @@ public final class InMemoryFeatureFlags implements FeatureFlags {
                 result.put((String) entry.getKey(), Boolean.parseBoolean((String) entry.getValue()));
             }
         } catch (final IOException e) {
-            System.err.println("[feature-flags] Failed to load feature-flags.properties: " + e.getMessage());
+            System.err.println("[feature-flags] Failed to load " + propertiesFile + ": " + e.getMessage());
         } finally {
             try {
                 is.close();
