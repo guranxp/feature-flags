@@ -1,4 +1,4 @@
-package com.forvity.featureflags;
+package com.guranxp.featureflags;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;

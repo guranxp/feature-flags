@@ -1,6 +1,6 @@
-package com.forvity.featureflags.spring;
+package com.guranxp.featureflags.spring;
 
-import com.forvity.featureflags.FeatureFlags;
+import com.guranxp.featureflags.FeatureFlags;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;

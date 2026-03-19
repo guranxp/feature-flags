@@ -1,4 +1,4 @@
-package com.forvity.featureflags;
+package com.guranxp.featureflags;
 
 import java.io.IOException;
 import java.io.InputStream;

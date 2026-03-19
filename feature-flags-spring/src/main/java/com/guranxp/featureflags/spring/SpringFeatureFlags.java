@@ -1,6 +1,6 @@
-package com.forvity.featureflags.spring;
+package com.guranxp.featureflags.spring;
 
-import com.forvity.featureflags.FeatureFlags;
+import com.guranxp.featureflags.FeatureFlags;
 import org.springframework.core.env.Environment;
 
 /**
