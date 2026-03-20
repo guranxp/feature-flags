@@ -118,6 +118,81 @@ defaults.put("feature.admin", false);
 FeatureFlags flags = new InMemoryFeatureFlags(defaults);
 ```
 
+## Feature enum
+
+For larger projects, instead of passing flag key strings around, define a project-specific enum that centralises all flags. Each constant declares its key, default value, creation date, and type:
+
+```java
+enum Feature {
+
+    NEW_DASHBOARD("feature.new-dashboard", false, LocalDate.of(2026, 3, 20)),
+    PAYMENT_PROVIDER("feature.payment-provider", true, LocalDate.of(2026, 3, 20), FlagType.OPERATIONAL),
+    ONBOARDING_V2("feature.onboarding-v2", false, LocalDate.of(2026, 3, 20), FlagType.EXPERIMENT),
+    BETA_REPORTS("feature.beta-reports", false, LocalDate.of(2026, 3, 20), FlagType.PERMISSION);
+
+    private static FeatureFlags featureFlags;
+
+    public static void configure(final FeatureFlags flags) {
+        featureFlags = flags;
+    }
+
+    private final String key;
+    private final boolean defaultValue;
+    private final LocalDate createdAt;
+    private final FlagType type;
+
+    Feature(final String key, final boolean defaultValue, final LocalDate createdAt) {
+        this(key, defaultValue, createdAt, FlagType.RELEASE);
+    }
+
+    Feature(final String key, final boolean defaultValue, final LocalDate createdAt, final FlagType type) {
+        this.key = key;
+        this.defaultValue = defaultValue;
+        this.createdAt = createdAt;
+        this.type = type;
+    }
+
+    public boolean isEnabled() {
+        return featureFlags.isEnabled(key, defaultValue);
+    }
+
+    public String key() { return key; }
+    public boolean defaultValue() { return defaultValue; }
+    public LocalDate createdAt() { return createdAt; }
+    public FlagType type() { return type; }
+}
+```
+
+Configure once at startup, then call `isEnabled()` anywhere without passing a `FeatureFlags` instance:
+
+```java
+// Once at startup:
+Feature.configure(new InMemoryFeatureFlags(Collections.emptyMap()));
+
+// Anywhere in the codebase:
+if (Feature.NEW_DASHBOARD.isEnabled()) {
+    showNewDashboard();
+}
+```
+
+The `createdAt` field enables an expiry test that fails CI when a short-lived flag has been around too long, nudging the team to clean it up:
+
+```java
+@Test
+void shouldNotHaveExpiredReleaseFlags() {
+    LocalDate cutoff = LocalDate.now().minusDays(90);
+    for (Feature f : Feature.values()) {
+        if (f.type() == FlagType.RELEASE || f.type() == FlagType.EXPERIMENT) {
+            assertThat(f.createdAt())
+                .as("Flag %s is older than 90 days — time to clean it up", f)
+                .isAfter(cutoff);
+        }
+    }
+}
+```
+
+A full example can be found in [`feature-flags-core/src/test/java/.../ExampleFeature.java`](feature-flags-core/src/test/java/com/guranxp/featureflags/ExampleFeature.java).
+
 ## Migrating to Unleash
 
 When you are ready to move to a full feature flag platform, implement the `FeatureFlags` interface against Unleash and swap the bean — no other code changes needed:
