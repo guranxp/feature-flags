@@ -14,9 +14,11 @@ import java.time.LocalDate;
  *
  * <p>Usage:
  * <pre>
- *     FeatureFlags flags = new InMemoryFeatureFlags(Collections.emptyMap());
+ *     // Once at startup:
+ *     ExampleFeature.configure(new InMemoryFeatureFlags(Collections.emptyMap()));
  *
- *     if (ExampleFeature.NEW_DASHBOARD.isEnabled(flags)) {
+ *     // Anywhere in the codebase:
+ *     if (ExampleFeature.NEW_DASHBOARD.isEnabled()) {
  *         showNewDashboard();
  *     }
  * </pre>
@@ -37,6 +39,12 @@ enum ExampleFeature {
     /** Controls access to the beta reporting module. */
     BETA_REPORTS("feature.beta-reports", LocalDate.of(2026, 3, 20), FlagType.PERMISSION);
 
+    private static FeatureFlags featureFlags;
+
+    public static void configure(final FeatureFlags flags) {
+        featureFlags = flags;
+    }
+
     private final String key;
     private final LocalDate createdAt;
     private final FlagType type;
@@ -49,6 +57,10 @@ enum ExampleFeature {
         this.key = key;
         this.createdAt = createdAt;
         this.type = type;
+    }
+
+    public boolean isEnabled() {
+        return featureFlags.isEnabled(key);
     }
 
     public boolean isEnabled(final FeatureFlags flags) {
