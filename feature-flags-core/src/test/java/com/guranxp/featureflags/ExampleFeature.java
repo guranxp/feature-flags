@@ -16,7 +16,7 @@ import java.time.LocalDate;
  * <pre>
  *     FeatureFlags flags = new InMemoryFeatureFlags(Collections.emptyMap());
  *
- *     if (flags.isEnabled(ExampleFeature.NEW_DASHBOARD.key())) {
+ *     if (ExampleFeature.NEW_DASHBOARD.isEnabled(flags)) {
  *         showNewDashboard();
  *     }
  * </pre>
@@ -49,6 +49,10 @@ enum ExampleFeature {
         this.key = key;
         this.createdAt = createdAt;
         this.type = type;
+    }
+
+    public boolean isEnabled(final FeatureFlags flags) {
+        return flags.isEnabled(key);
     }
 
     public String key() {
